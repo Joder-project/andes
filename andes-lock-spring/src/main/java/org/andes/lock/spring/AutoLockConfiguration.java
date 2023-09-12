@@ -1,6 +1,7 @@
 package org.andes.lock.spring;
 
 import org.andes.lock.core.LockManager;
+import org.andes.lock.core.LockProxyFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,7 +14,13 @@ public class AutoLockConfiguration {
     }
 
     @Bean
-    AutoLockBeanProcessor autoLockBeanProcessor(LockManager lockManager) {
-        return new AutoLockBeanProcessor(lockManager);
+    LockProxyFactory lockProxyFactory(LockManager lockManager) {
+        return new LockProxyFactory(lockManager);
     }
+
+    @Bean
+    AutoLockBeanProcessor autoLockBeanProcessor(LockManager lockManager, LockProxyFactory lockProxyFactory) {
+        return new AutoLockBeanProcessor(lockManager, lockProxyFactory);
+    }
+
 }

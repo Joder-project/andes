@@ -2,6 +2,7 @@ package org.andes.lock.core;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -17,19 +18,17 @@ public class LockManager {
     /**
      * 所有方法的锁链原型
      */
-    private final Map<String, LockChainPrototype> prototypes = new HashMap<>();
+    private final Map<Method, LockChainPrototype> prototypes = new HashMap<>();
 
 
     /**
      * 检查是否会导致死锁发生
      *
-     * @param methodName 方法名
-     * @param classes    需要加锁参数类型
+     * @param method  方法
+     * @param classes 需要加锁参数类型
      */
-    public void checkCouldDeadLock(String methodName, Class<?>... classes) {
-        if (prototypes.containsKey(methodName)) {
-            throw new IllegalStateException("不能出现同类名相同方法名" + methodName);
-        }
+    public void checkCouldDeadLock(Method method, Class<?>... classes) {
+        String methodName = method.getDeclaringClass().getName() + "." + method.getName();
         var lockChainPrototype = new LockChainPrototype(lockPool, methodName, classes);
         var list = prototypes.values().stream().toList();
         for (LockChainPrototype chainPrototype : list) {
@@ -45,27 +44,13 @@ public class LockManager {
                 throw new IllegalStateException("锁顺序冲突, " + methodName + ", " + chainPrototype.methodName);
             }
         }
-        prototypes.put(methodName, lockChainPrototype);
+        prototypes.put(method, lockChainPrototype);
     }
 
-    public void lock(String methodName, Object... args) {
-        var chain = getChain(methodName, args);
-        chain.lock();
-    }
-
-    public void unlock(String methodName, Object... args) {
-        var chain = getChain(methodName, args);
-        chain.unlock();
-    }
-
-    LockChain getChain(String methodName, Object... args) {
-        if (!prototypes.containsKey(methodName)) {
-            throw new IllegalStateException("找不到对应注册的锁链, " + methodName);
-        }
+    public LockChain getLockChain(Object... args) {
         for (Object arg : args) {
             Objects.requireNonNull(arg, "加锁对象不能为空");
         }
-        var lockChainPrototype = prototypes.get(methodName);
-        return lockChainPrototype.newChain(args);
+        return lockPool.newChain(args);
     }
 }

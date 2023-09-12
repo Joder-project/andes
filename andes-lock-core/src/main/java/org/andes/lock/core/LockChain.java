@@ -7,7 +7,7 @@ import java.util.concurrent.locks.Lock;
 /**
  * 锁链
  */
-class LockChain {
+public class LockChain {
 
     private final List<Lock> locks;
 
@@ -15,17 +15,19 @@ class LockChain {
         this.locks = Objects.requireNonNull(locks);
     }
 
-    void lock() {
+    public void lock() {
         if (locks.isEmpty()) {
             return;
         }
         locks.forEach(Lock::lock);
     }
 
-    void unlock() {
+    public void unlock() {
         if (locks.isEmpty()) {
             return;
         }
-        locks.forEach(Lock::unlock);
+        for (int i = locks.size() - 1; i >= 0; i--) {
+            locks.get(i).unlock();
+        }
     }
 }
