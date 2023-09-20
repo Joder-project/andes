@@ -12,7 +12,7 @@ import java.io.Writer;
 import java.util.*;
 
 @SupportedAnnotationTypes("*")
-@SupportedSourceVersion(SourceVersion.RELEASE_19)
+@SupportedSourceVersion(SourceVersion.RELEASE_21)
 @AutoService(Processor.class)
 public class AutoLockProcessor extends AbstractProcessor {
     private ProcessingEnvironment processingEnv;
